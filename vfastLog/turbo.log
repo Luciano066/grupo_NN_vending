@@ -1,0 +1,3 @@
+Command Line: /Tools/synopsys/verdi/X-2025.06-SP2/platform/LINUXAMD64/bin/vfast -silent -del . -o /home/luciano.oliveira/grupo_NN_vending/sim/vending.vcd.fsdb -ft verilog /home/luciano.oliveira/grupo_NN_vending/sim/vending.vcd
+uname(Linux srv-microeletronica3 4.18.0-553.el8_10.x86_64 #1 SMP Fri May 24 13:05:10 UTC 2024 x86_64)
+au time 0.041950 0.006134 0.014990 delta 27906048 27906048 total 225284096 225284096

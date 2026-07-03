@@ -1,0 +1,52 @@
+Info: [VCS_SAVE_RESTORE_INFO] ASLR (Address Space Layout Randomization) is detected on the machine. To enable $save functionality, ASLR will be switched off and simv re-executed.
+Please use '-no_save' simv switch to avoid re-execution or '-suppress=ASLR_DETECTED_INFO' to suppress this message.
+Chronologic VCS simulator copyright 1991-2025
+Contains Synopsys proprietary information.
+Compiler version X-2025.06-SP2_Full64; Runtime version X-2025.06-SP2_Full64;  Jul  3 10:07 2026
+======================================
+INICIO DA SIMULACAO DA VENDING MACHINE
+======================================
+
+CENARIO 1: compra cafe com R$1,00
+PASS: C1: dispense ativado
+PASS: C1: FSM voltou para IDLE
+PASS: C1: troco deve ser 75 centavos
+PASS: C1: credito zerado ao final
+
+CENARIO 2: credito insuficiente para snack
+PASS: C2: FSM foi para ERROR
+PASS: C2: sinal error ativo
+
+CENARIO 3: cancelamento apos inserir R$2,00
+PASS: C3: credito acumulado igual a 200
+PASS: C3: FSM voltou para IDLE
+PASS: C3: credito zerado apos cancelamento
+PASS: C3: troco devolvido igual a 200
+
+CENARIO 4: comprar cafe 5 vezes e tentar a sexta
+PASS: C4: compra 1 de cafe liberou produto
+PASS: C4: compra 1 voltou para IDLE
+PASS: C4: compra 2 de cafe liberou produto
+PASS: C4: compra 2 voltou para IDLE
+PASS: C4: compra 3 de cafe liberou produto
+PASS: C4: compra 3 voltou para IDLE
+PASS: C4: compra 4 de cafe liberou produto
+PASS: C4: compra 4 voltou para IDLE
+PASS: C4: compra 5 de cafe liberou produto
+PASS: C4: compra 5 voltou para IDLE
+PASS: C4: estoque do cafe zerado
+PASS: C4: sexta compra foi para ERROR
+PASS: C4: error ativo na sexta compra
+
+======================================
+RESULTADO FINAL
+PASS = 23
+FAIL = 0
+======================================
+TODOS OS TESTES PASSARAM.
+$finish called from file "sim/tb_vending.sv", line 275.
+$finish at simulation time               806000
+           V C S   S i m u l a t i o n   R e p o r t 
+Time: 806000 ps
+CPU Time:      0.350 seconds;       Data structure size:   0.0Mb
+Fri Jul  3 10:07:23 2026

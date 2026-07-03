@@ -1,0 +1,28 @@
+# Arquivos pesados/gerados por simulação
+simv
+simv.daidir/
+csrc/
+*.vcd
+*.fsdb
+*.vpd
+*.daidir/
+DVEfiles/
+verdiLog/
+novas.*
+novas.conf
+
+# Arquivos de síntese temporários
+alib-*/
+*.svf
+*.pvl
+*.syn
+*.mr
+*.key
+
+# Bibliotecas do laboratório
+libs/
+*.db
+
+# Sistema
+.DS_Store
+Thumbs.db
