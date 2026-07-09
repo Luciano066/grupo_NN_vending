@@ -1,6 +1,7 @@
 
 import vending_pkg::*;
 
+// Testbench self-checking da vending machine.
 module tb_vending;
 
   logic clk;
@@ -24,6 +25,7 @@ module tb_vending;
   logic [1:0] coin_100 [0:0];
   logic [1:0] coin_25  [0:0];
 
+  // DUT: instancia o top-level completo do projeto.
   vending_top dut (
     .clk        (clk),
     .rst        (rst),
@@ -38,19 +40,23 @@ module tb_vending;
     .state_out  (state_out)
   );
 
+  // Clock de simulacao com periodo de 10 unidades de tempo.
   always #5 clk = ~clk;
 
+  // Gera waveform para depuracao visual.
   initial begin
     $dumpfile("sim/vending.vcd");
     $dumpvars(0, tb_vending);
   end
 
+  // Timeout de seguranca para evitar simulacao travada.
   initial begin
     #5000;
     $error("TIMEOUT: a simulação demorou demais.");
     $finish;
   end
 
+  // Compara valor esperado e obtido, acumulando contadores de PASS/FAIL.
   task automatic check_eq(
     input logic [31:0] expected,
     input logic [31:0] actual,
@@ -67,6 +73,7 @@ module tb_vending;
     end
   endtask
 
+  // Aplica reset e inicializa as entradas do DUT.
   task automatic reset_dut();
     begin
       @(negedge clk);
@@ -86,6 +93,7 @@ module tb_vending;
     end
   endtask
 
+  // Insere uma moeda por um ciclo negativo e remove em seguida.
   task automatic apply_coin(input logic [1:0] value);
     begin
       @(negedge clk);
@@ -96,6 +104,7 @@ module tb_vending;
     end
   endtask
 
+  // Seleciona o item e gera um pulso de confirmacao.
   task automatic pulse_confirm(input logic [1:0] item);
     begin
       @(negedge clk);
@@ -107,6 +116,7 @@ module tb_vending;
     end
   endtask
 
+  // Gera um pulso de cancelamento para retornar a IDLE/reembolsar credito.
   task automatic pulse_cancel();
     begin
       @(negedge clk);
@@ -120,6 +130,7 @@ module tb_vending;
     end
   endtask
 
+  // Fluxo auxiliar de compra: seleciona item, insere moedas e confirma.
   task automatic buy_item(
     input logic [1:0] item,
     input logic [1:0] coins []
@@ -136,6 +147,7 @@ module tb_vending;
     end
   endtask
 
+  // Aguarda a FSM atingir um estado esperado dentro de um limite de ciclos.
   task automatic wait_for_state(
     input logic [2:0] expected_state,
     input int max_cycles,
@@ -156,6 +168,7 @@ module tb_vending;
     end
   endtask
 
+  // Aguarda o pulso de dispense dentro de um limite de ciclos.
   task automatic wait_for_dispense(
     input int max_cycles,
     output bit ok
@@ -192,7 +205,7 @@ module tb_vending;
     $display("INICIO DA SIMULACAO DA VENDING MACHINE");
     $display("======================================");
 
-    // CENARIO 1: compra bem-sucedida com troco
+    // CENARIO 1: compra bem-sucedida com troco.
     $display("\nCENARIO 1: compra cafe com R$1,00");
 
     reset_dut();
@@ -208,7 +221,7 @@ module tb_vending;
     check_eq(8'd75, change_out, "C1: troco deve ser 75 centavos");
     check_eq(8'd0, dut.u_credit_reg.credit, "C1: credito zerado ao final");
 
-    // CENARIO 2: credito insuficiente
+    // CENARIO 2: credito insuficiente deve levar a ERROR.
     $display("\nCENARIO 2: credito insuficiente para snack");
 
     reset_dut();
@@ -221,7 +234,7 @@ module tb_vending;
 
     pulse_cancel();
 
-    // CENARIO 3: cancelamento
+    // CENARIO 3: cancelamento devolve o credito acumulado.
     $display("\nCENARIO 3: cancelamento apos inserir R$2,00");
 
     reset_dut();
@@ -237,7 +250,7 @@ module tb_vending;
     check_eq(8'd0, dut.u_credit_reg.credit, "C3: credito zerado apos cancelamento");
     check_eq(8'd200, change_out, "C3: troco devolvido igual a 200");
 
-    // CENARIO 4: estoque zerado
+    // CENARIO 4: apos zerar estoque, nova compra deve falhar.
     $display("\nCENARIO 4: comprar cafe 5 vezes e tentar a sexta");
 
     reset_dut();

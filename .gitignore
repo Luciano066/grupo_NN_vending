@@ -1,28 +1,37 @@
-# Arquivos pesados/gerados por simulação
+# Bibliotecas locais do laboratorio
+libs/
+*.db
+
+# Simulacao VCS/DVE/Verdi
 simv
 simv.daidir/
 csrc/
+DVEfiles/
+vfastLog/
+verdiLog/
+command.log
+ucli.key
+novas.*
 *.vcd
 *.fsdb
 *.vpd
 *.daidir/
-DVEfiles/
-verdiLog/
-novas.*
-novas.conf
 
-# Arquivos de síntese temporários
+# Temporarios do Design Compiler
 alib-*/
+default.svf
 *.svf
+*.ddc
 *.pvl
 *.syn
 *.mr
-*.key
+synth/work/
+synth/*.log
 
-# Bibliotecas do laboratório
-libs/
-*.db
-
-# Sistema
+# Arquivos de sistema/editor
 .DS_Store
 Thumbs.db
+desktop.ini
+*~
+*.swp
+*.swo

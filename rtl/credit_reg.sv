@@ -10,6 +10,7 @@ module credit_reg (
   output logic [7:0] credit
 );
 
+  // Converte o codigo da moeda para valor em centavos.
   function automatic logic [7:0] coin_to_value(input logic [1:0] coin);
     case (coin)
       2'b00: coin_to_value = 8'd0;
@@ -20,6 +21,9 @@ module credit_reg (
     endcase
   endfunction
 
+  // Registrador sincrono de credito.
+  // Prioridade: reset -> cancel -> clear_credit -> acumular moeda.
+  // O credito e acumulado em centavos enquanto a FSM esta em IDLE/COLLECT.
   always_ff @(posedge clk) begin
     if (rst) begin
       credit <= 8'd0;

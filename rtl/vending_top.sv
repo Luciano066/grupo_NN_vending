@@ -1,5 +1,6 @@
 import vending_pkg::*;
 
+// Modulo top-level que conecta FSM, credito, memoria, comparador e troco.
 module vending_top (
   input  logic       clk,
   input  logic       rst,
@@ -17,21 +18,26 @@ module vending_top (
 
   state_t current_state;
 
+  // Sinais de dados internos em centavos.
   logic [7:0] credit;
   logic [7:0] price;
   logic [7:0] stock;
   logic [7:0] change;
 
+  // Resultado combinacional da verificacao de credito e estoque.
   logic can_sell;
 
+  // Sinais de controle gerados pela FSM para os demais blocos.
   logic mem_read;
   logic mem_write;
   logic clear_credit;
   logic change_load;
   logic refund_credit;
 
+  // Exporta o estado atual como vetor para facilitar observacao externa.
   assign state_out = current_state;
 
+  // Unidade de controle: sequencia a FSM e gera sinais de controle.
   control_unit u_control_unit (
     .clk           (clk),
     .rst           (rst),
@@ -49,6 +55,7 @@ module vending_top (
     .state_out     (current_state)
   );
 
+  // Registrador de credito: acumula moedas e limpa credito quando necessario.
   credit_reg u_credit_reg (
     .clk          (clk),
     .rst          (rst),
@@ -59,6 +66,7 @@ module vending_top (
     .credit       (credit)
   );
 
+  // Memoria de produtos: fornece preco/estoque e decrementa estoque vendido.
   memory u_memory (
     .clk       (clk),
     .rst       (rst),
@@ -69,6 +77,7 @@ module vending_top (
     .stock     (stock)
   );
 
+  // Comparador de venda: valida credito suficiente e estoque disponivel.
   comparator u_comparator (
     .credit   (credit),
     .price    (price),
@@ -76,12 +85,15 @@ module vending_top (
     .can_sell (can_sell)
   );
 
+  // Subtrator de troco: calcula credit - price para compras validas.
   subtractor u_subtractor (
     .credit (credit),
     .price  (price),
     .change (change)
   );
 
+  // Registradores de saida para troco e display.
+  // No cancelamento ou erro, display/troco refletem o credito a devolver.
   always_ff @(posedge clk) begin
     if (rst) begin
       change_out <= 8'd0;

@@ -1,5 +1,6 @@
 import vending_pkg::*;
 
+// FSM de Moore responsavel por sequenciar coleta, verificacao, venda e erro.
 module control_unit (
   input  logic       clk,
   input  logic       rst,
@@ -18,13 +19,18 @@ module control_unit (
   output state_t     state_out
 );
 
+  // Registradores de estado atual e proximo estado da FSM.
   state_t state, next_state;
 
+  // check_valid cria um ciclo extra em CHECK para aguardar a leitura sincrona
+  // da memoria antes de usar can_sell.
   logic check_valid;
   logic next_check_valid;
 
+  // Exposicao do estado atual para o top-level/testbench.
   assign state_out = state;
 
+  // Registradores sincronizados da FSM e do controle de leitura valida.
   always_ff @(posedge clk) begin
     if (rst) begin
       state       <= IDLE;
@@ -35,6 +41,7 @@ module control_unit (
     end
   end
 
+  // Logica combinacional de proximo estado e saidas de Moore.
   always_comb begin
     next_state       = state;
     next_check_valid = check_valid;
@@ -50,6 +57,7 @@ module control_unit (
     case (state)
 
       IDLE: begin
+        // Espera a primeira moeda para iniciar a coleta de credito.
         next_check_valid = 1'b0;
 
         if (coin_in != 2'b00) begin
@@ -60,6 +68,7 @@ module control_unit (
       end
 
       COLLECT: begin
+        // Mantem a coleta ate o usuario confirmar a compra.
         next_check_valid = 1'b0;
 
         if (confirm) begin
@@ -70,6 +79,7 @@ module control_unit (
       end
 
       CHECK: begin
+        // Solicita leitura de preco/estoque e, no ciclo seguinte, avalia venda.
         mem_read = 1'b1;
 
         if (!check_valid) begin
@@ -87,6 +97,7 @@ module control_unit (
       end
 
       DISPENSE: begin
+        // Libera o produto e decrementa o estoque do item selecionado.
         dispense        = 1'b1;
         mem_write       = 1'b1;
         next_check_valid = 1'b0;
@@ -94,6 +105,7 @@ module control_unit (
       end
 
       CHANGE: begin
+        // Registra o troco calculado e zera o credito acumulado.
         change_load     = 1'b1;
         clear_credit    = 1'b1;
         next_check_valid = 1'b0;
@@ -101,6 +113,7 @@ module control_unit (
       end
 
       ERROR: begin
+        // Indica erro e mostra o credito para reembolso ate haver cancelamento.
         error           = 1'b1;
         refund_credit   = 1'b1;
         next_check_valid = 1'b0;
@@ -114,6 +127,7 @@ module control_unit (
 
     endcase
 
+    // Cancelamento tem prioridade sobre a decisao do estado atual e volta a IDLE.
     if (cancel) begin
       next_state       = IDLE;
       next_check_valid = 1'b0;

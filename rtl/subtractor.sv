@@ -4,6 +4,8 @@ module subtractor (
   output logic [7:0] change
 );
 
+  // Calcula o troco em centavos.
+  // A FSM usa este resultado apos o comparador garantir credit >= price.
   assign change = credit - price;
 
 endmodule
