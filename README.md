@@ -278,6 +278,142 @@ Arquivos de sintese presentes no repositorio:
 - `synth/netlist/vending_top_netlist.v`
 - `synth/netlist/vending_top_mapped.sdc`
 
+## Atividade de Equivalencia Formal
+
+Esta atividade compara o RTL de `vending_top` com duas netlists geradas pelo
+Design Compiler: uma compilada com a hierarquia grouped e outra permitindo
+autoungroup. Os scripts devem ser executados somente no servidor Linux que
+possui as ferramentas e licencas Synopsys.
+
+### Pre-requisitos
+
+- Design Compiler, Formality e licencas Synopsys disponiveis.
+- Ambiente configurado por `/Tools/synopsys/snps.sh`, ou ajuste equivalente do
+  servidor.
+- Biblioteca `saed32rvt_tt1p05v25c.db` acessivel como
+  `libs/saed32rvt_tt1p05v25c.db` a partir da raiz do repositorio.
+- Bash e permissao de leitura e escrita no clone do projeto.
+- Execucao iniciada em uma arvore limpa ou com os artefatos de uma rodada
+  anterior identificados e preservados separadamente.
+
+A biblioteca `.db` nao deve ser copiada para o Git nem modificada. O RTL e o
+arquivo `synth/vending.sdc` tambem nao devem ser alterados para esta comparacao.
+
+### Ordem de execucao
+
+Na raiz do repositorio, carregue ou disponibilize a biblioteca esperada e rode:
+
+```bash
+bash scripts/run_synth_formality.sh
+bash scripts/run_formality.sh
+```
+
+O primeiro comando entra em `synth/` e executa, nesta ordem:
+
+```bash
+dc_shell -f synth_grouped.tcl 2>&1 | tee logs/synth_grouped.log
+dc_shell -f synth_ungrouped.tcl 2>&1 | tee logs/synth_ungrouped.log
+```
+
+O segundo entra em `fm/` e executa:
+
+```bash
+fm_shell -f formality_grouped.tcl 2>&1 | tee logs/formality_grouped.log
+fm_shell -f formality_ungrouped.tcl 2>&1 | tee logs/formality_ungrouped.log
+```
+
+Nao execute o Formality antes de ambas as sinteses terminarem e gerarem seus
+respectivos pares de netlist e SVF.
+
+### Arquivos esperados
+
+A sintese grouped deve gerar:
+
+```text
+synth/netlist/vending_top_netlist_grouped.v
+synth/netlist/vending_top_mapped_grouped.sdc
+synth/reports/default_grouped.svf
+synth/reports/check_design_grouped.rpt
+synth/reports/area_grouped.rpt
+synth/reports/timing_grouped.rpt
+synth/reports/power_grouped.rpt
+synth/reports/constraint_grouped.rpt
+synth/logs/synth_grouped.log
+```
+
+A sintese ungrouped deve gerar os nomes equivalentes com o sufixo
+`_ungrouped`, incluindo:
+
+```text
+synth/netlist/vending_top_netlist_ungrouped.v
+synth/netlist/vending_top_mapped_ungrouped.sdc
+synth/reports/default_ungrouped.svf
+synth/logs/synth_ungrouped.log
+```
+
+O Formality deve gerar logs em `fm/logs/` e, para cada variante, relatorios de
+status, pontos casados, nao casados, aprovados e com falha, alem das operacoes
+SVF aceitas e rejeitadas:
+
+```text
+fm/reports/grouped/
+fm/reports/ungrouped/
+```
+
+### Conferencia dos resultados
+
+O resultado autoritativo de cada verificacao fica em `status_final.rpt` e no
+log correspondente. Procure os estados sem assumir que o codigo de saida do
+shell representa o resultado da equivalencia:
+
+```bash
+grep -EHi 'SUCCEEDED|FAILED|INCONCLUSIVE|NOT COMPARED' \
+  fm/logs/formality_grouped.log \
+  fm/logs/formality_ungrouped.log \
+  fm/reports/grouped/status_final.rpt \
+  fm/reports/ungrouped/status_final.rpt
+```
+
+- `SUCCEEDED`: todos os pontos comparados foram provados equivalentes.
+- `FAILED`: ha pelo menos um ponto com contraexemplo ou falha de equivalencia;
+  consulte `failing_points.rpt` e o log.
+- `INCONCLUSIVE`: a prova nao terminou de forma conclusiva; consulte o log e
+  os limites ou diagnosticos informados pela ferramenta.
+- `NOT COMPARED`: existem pontos que nao chegaram a ser comparados; examine os
+  relatorios de pontos nao casados e o status final.
+
+Confira tambem `svf_rejected.rpt`. Operacoes SVF rejeitadas nao significam
+automaticamente que a verificacao falhou, mas precisam ser analisadas junto do
+match, do status final e dos pontos com falha ou nao comparados.
+
+### Coerencia entre SVF e netlist
+
+Nunca misture o SVF de uma rodada com a netlist de outra. O par grouped e:
+
+```text
+default_grouped.svf + vending_top_netlist_grouped.v
+```
+
+O par ungrouped e:
+
+```text
+default_ungrouped.svf + vending_top_netlist_ungrouped.v
+```
+
+Se uma sintese for repetida, repita depois a verificacao correspondente usando
+os dois arquivos produzidos nessa mesma rodada.
+
+### Compatibilidade de versao do Formality
+
+Os comandos de relatorio podem variar entre versoes do Formality. Antes da
+execucao oficial, confirme no servidor os comandos `report_status`,
+`report_matched_points`, `report_unmatched_points`, `report_passing_points`,
+`report_failing_points` e `report_svf_operation`, incluindo as opcoes de status
+aceito e rejeitado. Use `help report_*` e o help especifico de cada comando. Se
+a versao instalada exigir outra sintaxe, ajuste somente os comandos de
+relatorio, preservando a ordem de leitura, `set_svf`, auto setup, `set_top`,
+`match` e `verify`.
+
 ## Documentacao
 
 O relatorio do projeto fica em:
