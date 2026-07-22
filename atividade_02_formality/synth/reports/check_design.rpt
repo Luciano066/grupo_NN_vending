@@ -1,0 +1,22 @@
+ 
+****************************************
+check_design summary:
+Version:     X-2025.06-SP2
+Date:        Fri Jul  3 11:25:02 2026
+****************************************
+
+                   Name                                            Total
+--------------------------------------------------------------------------------
+Inputs/Outputs                                                      3
+    Shorted outputs (LINT-31)                                       3
+
+Cells                                                               2
+    Cells do not drive (LINT-1)                                     2
+--------------------------------------------------------------------------------
+
+Warning: In design 'credit_reg', cell 'C114' does not drive any nets. (LINT-1)
+Warning: In design 'memory', cell 'C362' does not drive any nets. (LINT-1)
+Warning: In design 'control_unit', output port 'mem_write' is connected directly to output port 'dispense'. (LINT-31)
+Warning: In design 'control_unit', output port 'error' is connected directly to output port 'refund_credit'. (LINT-31)
+Warning: In design 'control_unit', output port 'clear_credit' is connected directly to output port 'change_load'. (LINT-31)
+1
