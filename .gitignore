@@ -1,37 +1,53 @@
-# Bibliotecas locais do laboratorio
+# Os padrões sem barra inicial valem recursivamente em todas as atividades.
+
+# Bibliotecas tecnológicas locais ou licenciadas
 libs/
 *.db
 
-# Simulacao VCS/DVE/Verdi
+# Diretórios de trabalho e bases temporárias das ferramentas Synopsys
+work/
+alib-*/
+formality_svf/
+csrc/
 simv
 simv.daidir/
-csrc/
 DVEfiles/
 vfastLog/
 verdiLog/
 command.log
-ucli.key
-novas.*
+logs/
+**/synth/*.log
+
+# Formas de onda e artefatos intermediários
 *.vcd
 *.fsdb
 *.vpd
 *.daidir/
-
-# Temporarios do Design Compiler
-alib-*/
-default.svf
 *.svf
 *.ddc
 *.pvl
 *.syn
 *.mr
-synth/work/
-synth/*.log
+ucli.key
+novas.*
 
-# Arquivos de sistema/editor
+# Dependências e backups locais
+node_modules/
+backups/
+*.bak
+*.orig
+*.rej
+
+# Arquivos temporários de sistema e editor
 .DS_Store
 Thumbs.db
 desktop.ini
 *~
+*.tmp
+*.temp
 *.swp
 *.swo
+.#*
+\#*#
+
+# Relatórios finais *.rpt permanecem versionáveis.
