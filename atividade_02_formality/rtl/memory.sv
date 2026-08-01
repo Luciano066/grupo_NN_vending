@@ -20,8 +20,8 @@ module memory (
 
   /*
    * Inicialização dos preços e estoques usada pelo modelo RTL na simulação.
-   * A versão do Formality utilizada mostrou aviso de que INITIAL não é
-   * suportado. O bloco é preservado; o reset síncrono também repõe esses dados.
+   * O Formality X-2025.06-SP3 mostrou aviso de que INITIAL não é suportado.
+   * O bloco é preservado; o reset síncrono também repõe esses dados.
    */
   initial begin
     mem[0] = {8'd25,  8'd5};  // Café  - R$0,25 - estoque 5

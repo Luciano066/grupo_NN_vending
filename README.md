@@ -1,17 +1,29 @@
-﻿# Projeto Vending Machine — Atividades RTL e Formality
+# Projeto Vending Machine em SystemVerilog
 
-Este repositório reúne duas atividades desenvolvidas a partir de um controlador de máquina de vendas em SystemVerilog.
+Projeto acadêmico de uma máquina de vendas descrita em SystemVerilog, organizado em duas entregas complementares: desenvolvimento e validação do RTL, seguidos de síntese comparativa e equivalência formal.
 
-## Atividade 01 — Projeto, simulação e síntese
+## Atividade 01 — Projeto RTL
 
-Contém o RTL da máquina de vendas, testbench, resultados de simulação, síntese lógica, netlist, relatórios e documentação.
+- implementação RTL da vending machine;
+- testbench e simulação funcional;
+- síntese lógica;
+- análise de área e timing.
 
-[Acessar a Atividade 01](atividade_01_vending_machine/README.md)
+[Acessar a documentação da Atividade 01](atividade_01_vending_machine/README.md)
 
-## Atividade 02 — Equivalência formal
+## Atividade 02 — Formality
 
-Contém os scripts de síntese grouped e ungrouped e a verificação de equivalência entre o RTL e as netlists sintetizadas utilizando Synopsys Formality.
+- síntese nas configurações grouped e ungrouped;
+- verificação de equivalência formal entre RTL e netlists sintetizadas.
 
-[Acessar a Atividade 02](atividade_02_formality/README.md)
+[Acessar a documentação da Atividade 02](atividade_02_formality/README.md)
 
-As duas configurações foram executadas no servidor Synopsys e obtiveram `Verification SUCCEEDED`.
+## Resultados consolidados
+
+| Etapa | Resultado |
+| --- | --- |
+| Simulação RTL | 23 PASS, 0 FAIL |
+| Menor período válido | 5 ns |
+| Frequência correspondente | 200 MHz |
+| Formality grouped | Verification SUCCEEDED |
+| Formality ungrouped | Verification SUCCEEDED |

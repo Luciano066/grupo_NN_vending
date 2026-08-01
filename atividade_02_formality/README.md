@@ -23,24 +23,21 @@ A máquina aceita moedas, acumula crédito, consulta preço e estoque do produto
 ```text
 atividade_02_formality/
 |-- README.md
-|-- files.f
 |-- rtl/                 # Fontes SystemVerilog da vending machine
-|-- sim/                 # Testbench e resultado de simulação já registrado
 |-- synth/
 |   |-- synth_grouped.tcl
 |   |-- synth_ungrouped.tcl
-|   |-- synth.tcl        # Fluxo legado de síntese única
-|   |-- vending.sdc
-|   |-- netlist/         # Netlists e SDCs mapeados
-|   `-- reports/         # Relatórios e SVFs produzidos pela síntese
+|   `-- vending.sdc
 |-- fm/
 |   |-- formality_grouped.tcl
 |   `-- formality_ungrouped.tcl
-|-- scripts/             # Automação de simulação, síntese e Formality
-`-- docs/                # Relatório e imagens da atividade
+`-- scripts/
+    |-- run_synth_formality.sh
+    |-- run_formality.sh
+    `-- check_results.sh
 ```
 
-Os diretórios temporários `work/`, `logs/` e `formality_svf/` podem ser criados durante novas execuções, mas não devem ser versionados.
+Os diretórios `synth/netlist/`, `synth/reports/`, `synth/logs/`, `fm/reports/` e `fm/logs/` são criados durante a execução. Diretórios temporários como `work/` e `formality_svf/` também podem surgir, mas não devem ser versionados.
 
 ## Módulos RTL
 
@@ -142,6 +139,16 @@ bash scripts/run_formality.sh
 
 Não misture uma netlist com o SVF de outra variante ou de outra rodada.
 
+### Conferência dos resultados
+
+Depois de executar as duas verificações no ambiente Synopsys, confira os logs e os relatórios finais com:
+
+```bash
+bash scripts/check_results.sh
+```
+
+O conferidor procura `Verification SUCCEEDED` nos dois logs, mostra o status de cada variante e exibe os resumos de failing e unmatched points. Se os logs necessários ainda não existirem, ele encerra com código diferente de zero e orienta a gerar os resultados no ambiente Synopsys.
+
 ## Arquivos gerados por etapa
 
 A síntese grouped produz:
@@ -167,6 +174,8 @@ A síntese ungrouped produz os arquivos equivalentes com o sufixo `_ungrouped`:
 O Formality grouped escreve `fm/logs/formality_grouped.log` e, em `fm/reports/grouped/`, os relatórios `status_after_match.rpt`, `matched_points.rpt`, `unmatched_points.rpt`, `svf_accepted.rpt`, `svf_rejected.rpt`, `status_final.rpt`, `passing_points.rpt`, `failing_points.rpt` e `unmatched_points_final.rpt`.
 
 O Formality ungrouped escreve o log correspondente em `fm/logs/formality_ungrouped.log` e os mesmos nomes de relatórios em `fm/reports/ungrouped/`.
+
+Os arquivos SVF são regenerados em cada síntese e não são versionados. Para preservar a coerência da prova, cada SVF deve ser usado com a netlist produzida na mesma variante e na mesma rodada.
 
 ## Resultados obtidos no servidor
 
@@ -194,7 +203,7 @@ O total de compare points permaneceu igual nas duas implementações: 21 portas 
 
 ## Avisos observados
 
-- A versão utilizada do Formality avisou que o bloco `INITIAL` de `memory.sv` não é suportado. O bloco foi mantido no RTL, e o reset síncrono também inicializa a memória.
+- O Formality X-2025.06-SP3 avisou que o bloco `INITIAL` de `memory.sv` não é suportado. O bloco foi mantido no RTL, e o reset síncrono também inicializa a memória.
 - Foram emitidos avisos relacionados às células de alimentação da biblioteca tecnológica.
 - Foi informada a ausência da operação `guide_hier_map` no guia SVF.
 
