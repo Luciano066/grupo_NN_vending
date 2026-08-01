@@ -209,6 +209,13 @@ O total de compare points permaneceu igual nas duas implementações: 21 portas 
 
 Esses avisos não impediram o casamento dos pontos nem a prova: ambas as execuções terminaram com `Verification SUCCEEDED`, sem failing points, unmatched points ou operações SVF rejeitadas.
 
+## Relatório técnico
+
+- [Relatório em PDF](docs/relatorio.pdf)
+- [Código-fonte LaTeX](docs/relatorio.tex)
+
+O código-fonte utiliza as evidências presentes nas pastas `docs/imagens` e `docs/dados`.
+
 ## Arquivos que não devem ser versionados
 
 Não adicione ao Git dados licenciados nem artefatos temporários das ferramentas:

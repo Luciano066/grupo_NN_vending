@@ -1,0 +1,540 @@
+\documentclass[11pt,a4paper]{article}
+
+% ----------------------------------------------------------
+% Pacotes básicos
+% ----------------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazil]{babel}
+\usepackage{lmodern}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{indentfirst}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{microtype}
+\usepackage{titlesec}
+\usepackage{caption}
+\usepackage{enumitem}
+
+% ----------------------------------------------------------
+% Configurações de página - mesmo padrão do primeiro relatório
+% ----------------------------------------------------------
+\geometry{
+    left=2.1cm,
+    right=2.1cm,
+    top=2.0cm,
+    bottom=2.0cm
+}
+
+\setstretch{1.08}
+\setlength{\parskip}{0pt}
+\setlength{\textfloatsep}{8pt}
+\setlength{\floatsep}{6pt}
+\setlength{\intextsep}{6pt}
+\titlespacing*{\section}{0pt}{0.9em}{0.4em}
+\titlespacing*{\subsection}{0pt}{0.7em}{0.25em}
+\captionsetup{font=small,skip=4pt}
+
+% ----------------------------------------------------------
+% Links
+% ----------------------------------------------------------
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=blue,
+    citecolor=black,
+    pdftitle={Equivalência Formal do Controlador de Vending Machine},
+    pdfauthor={Luciano Antunes de Oliveira}
+}
+\urlstyle{same}
+
+% ----------------------------------------------------------
+% Blocos de código e relatórios
+% ----------------------------------------------------------
+\definecolor{codegray}{gray}{0.96}
+\definecolor{codegreen}{RGB}{0,100,0}
+\definecolor{codeblue}{RGB}{0,40,140}
+
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,
+    breakatwhitespace=false,
+    frame=single,
+    backgroundcolor=\color{codegray},
+    columns=fullflexible,
+    keepspaces=true,
+    showstringspaces=false,
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    keywordstyle=\color{codeblue}\bfseries,
+    commentstyle=\color{codegreen},
+    aboveskip=5pt,
+    belowskip=5pt,
+    literate=
+      {á}{{\'a}}1 {à}{{\`a}}1 {ã}{{\~a}}1 {â}{{\^a}}1
+      {é}{{\'e}}1 {ê}{{\^e}}1 {í}{{\'i}}1
+      {ó}{{\'o}}1 {õ}{{\~o}}1 {ô}{{\^o}}1
+      {ú}{{\'u}}1 {ç}{{\c{c}}}1
+      {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1
+      {Ó}{{\'O}}1 {Ú}{{\'U}}1 {Ç}{{\c{C}}}1
+}
+
+\lstdefinestyle{tclstyle}{
+    language=tcl,
+    morekeywords={set_svf,compile_ultra,read_db,read_sverilog,read_verilog,set_top,match,verify,report_status,report_svf_operation,report_matched_points,report_unmatched_points,report_passing_points,report_failing_points}
+}
+
+\lstdefinestyle{reportstyle}{
+    language={},
+    numbers=none,
+    keywordstyle=\color{black},
+    commentstyle=\color{black}
+}
+
+% ----------------------------------------------------------
+% Imagens
+% ----------------------------------------------------------
+\graphicspath{{imagens/}}
+
+\newcommand{\imagemrelatorio}[4]{
+\begin{figure}[H]
+\centering
+\IfFileExists{imagens/#1}{
+    \includegraphics[width=#2\textwidth]{imagens/#1}
+}{
+    \fbox{
+    \begin{minipage}[c][4.5cm][c]{0.9\textwidth}
+        \centering
+        Imagem não encontrada: \texttt{imagens/#1}\\
+        Insira a imagem correspondente na pasta \texttt{imagens/}.
+    \end{minipage}
+    }
+}
+\caption{#3}
+\label{#4}
+\end{figure}
+}
+
+\begin{document}
+\pagenumbering{gobble}
+
+% ----------------------------------------------------------
+% CAPA
+% ----------------------------------------------------------
+\begin{titlepage}
+    \centering
+
+    {\large CI Expert -- Residência em Microeletrônica\par}
+    {\large Trilha: RTL Design\par}
+    {\large Módulo: Verificação de Equivalência Formal\par}
+
+    \vspace{3cm}
+
+    {\LARGE \textbf{Equivalência Formal do Controlador de Vending Machine}\par}
+
+    \vspace{0.7cm}
+
+    {\Large RTL versus Netlist com Guidance SVF\par}
+
+    \vspace{1cm}
+
+    {\large Relatório Técnico - Atividade 02\par}
+
+    \vfill
+
+    \begin{flushleft}
+    \textbf{Aluno:} Luciano Antunes de Oliveira\\
+    \textbf{Projeto:} Controlador digital de vending machine\\
+    \textbf{Ferramentas:} Synopsys Design Compiler e Synopsys Formality\\
+    \textbf{Repositório GitHub:} \url{https://github.com/luciano066/grupo_NN_vending}
+    \end{flushleft}
+
+    \vfill
+
+    {\large 2026\par}
+\end{titlepage}
+
+\pagenumbering{roman}
+\setcounter{page}{1}
+\tableofcontents
+\newpage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+% ----------------------------------------------------------
+\section{Introdução}
+% ----------------------------------------------------------
+
+Este relatório apresenta a verificação de equivalência formal do controlador de vending machine desenvolvido em SystemVerilog na atividade anterior. O objetivo do fluxo é demonstrar que as netlists mapeadas produzidas pelo Synopsys Design Compiler preservam o comportamento sequencial do RTL original.
+
+Diferentemente da simulação funcional, que avalia o circuito para um conjunto finito de estímulos, a equivalência formal compara matematicamente a implementação sintetizada com o design de referência. O Synopsys Formality realiza inicialmente o casamento dos pontos de comparação por meio do comando \texttt{match} e, em seguida, prova a equivalência lógica desses pontos com o comando \texttt{verify}.
+
+O arquivo SVF (Setup/Verification File) foi utilizado como guidance entre a síntese e a verificação. Esse arquivo registra as transformações realizadas pelo Design Compiler e permite que o Formality interprete alterações como otimizações lógicas, mudanças de nomes e remoção de fronteiras hierárquicas. Foram executadas duas rodadas independentes: uma com \texttt{compile\_ultra -no\_autoungroup}, preservando a hierarquia, e outra com \texttt{compile\_ultra}, permitindo o desagrupamento automático.
+
+% ----------------------------------------------------------
+\section{Objetivos}
+% ----------------------------------------------------------
+
+Os objetivos específicos da atividade foram:
+
+\begin{itemize}[leftmargin=1.2cm,itemsep=2pt]
+    \item gerar um SVF próprio para cada rodada de síntese;
+    \item carregar o RTL como design de referência e a netlist como implementação;
+    \item habilitar o modo \texttt{synopsys\_auto\_setup};
+    \item executar \texttt{match} e \texttt{verify};
+    \item analisar operações SVF aceitas e rejeitadas;
+    \item verificar a existência de pontos passing, failing e unmatched;
+    \item comparar os fluxos grouped e ungrouped;
+    \item documentar o sign-off formal com evidências reproduzíveis.
+\end{itemize}
+
+% ----------------------------------------------------------
+\section{Fundamentos da Equivalência Formal}
+% ----------------------------------------------------------
+
+O \textit{golden design}, ou design de referência, corresponde ao RTL SystemVerilog original. Nesta atividade, ele é composto pelos módulos \texttt{vending\_pkg}, \texttt{credit\_reg}, \texttt{memory}, \texttt{comparator}, \texttt{subtractor}, \texttt{control\_unit} e \texttt{vending\_top}. O \textit{revised design}, ou implementação, corresponde à netlist Verilog mapeada gerada após \texttt{compile\_ultra}.
+
+Os pontos de comparação incluem saídas primárias e elementos de estado. O comando \texttt{match} estabelece correspondências entre os pontos do RTL e da netlist, enquanto \texttt{verify} demonstra se a lógica entre cada par é equivalente. Um resultado \texttt{SUCCEEDED} indica que todos os pontos relevantes foram provados equivalentes. Pontos \texttt{failing} representam divergências lógicas, e pontos \texttt{unmatched} representam elementos que não encontraram correspondência entre os dois designs.
+
+O SVF é central no fluxo porque mantém um trilho de auditoria das transformações da síntese. Cada netlist foi verificada com o SVF produzido na mesma execução de \texttt{compile\_ultra}, evitando a mistura de artefatos de rodadas distintas.
+
+% ----------------------------------------------------------
+\section{Ambiente e Organização dos Arquivos}
+% ----------------------------------------------------------
+
+As execuções foram realizadas no servidor \texttt{srv-microeletronica3}. As versões utilizadas foram:
+
+\begin{table}[H]
+\centering
+\caption{Ferramentas utilizadas}
+\label{tab:ferramentas}
+\begin{tabular}{ll}
+\toprule
+\textbf{Ferramenta} & \textbf{Versão} \\
+\midrule
+Synopsys Design Compiler & X-2025.06-SP2 \\
+Synopsys Formality & X-2025.06-SP3 \\
+Biblioteca tecnológica & SAED32 RVT, \texttt{saed32rvt\_tt1p05v25c.db} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A atividade foi organizada em diretórios separados para RTL, síntese, Formality, logs e relatórios. Os artefatos grouped e ungrouped receberam nomes independentes, incluindo netlists, SVFs e pastas de reports.
+
+\begin{lstlisting}[style=reportstyle,caption={Estrutura principal da Atividade 02.}]
+atividade_02_formality/
+|-- rtl/
+|-- libs/
+|-- synth/
+|   |-- synth_grouped.tcl
+|   |-- synth_ungrouped.tcl
+|   |-- netlist/
+|   |-- reports/
+|   `-- logs/
+`-- fm/
+    |-- formality_grouped.tcl
+    |-- formality_ungrouped.tcl
+    |-- reports/grouped/
+    |-- reports/ungrouped/
+    `-- logs/
+\end{lstlisting}
+
+% ----------------------------------------------------------
+\section{Metodologia}
+% ----------------------------------------------------------
+
+\subsection{Síntese grouped}
+
+Na primeira rodada, \texttt{set\_svf} foi ativado antes da compilação e a opção \texttt{-no\_autoungroup} foi utilizada para preservar a hierarquia dos módulos. Ao final, o SVF foi encerrado com \texttt{set\_svf -off}, e uma netlist específica foi escrita.
+
+\lstinputlisting[
+    style=tclstyle,
+    firstline=26,
+    lastline=63,
+    caption={Trecho principal de \texttt{synth\_grouped.tcl}.},
+    label={lst:synth-grouped}
+]{dados/synth_grouped.tcl}
+
+\subsection{Síntese ungrouped}
+
+Na segunda rodada, o comando \texttt{compile\_ultra} foi executado sem \texttt{-no\_autoungroup}. Isso permitiu que o Design Compiler removesse fronteiras hierárquicas quando considerou vantajoso. Um novo SVF e uma nova netlist foram produzidos para essa execução.
+
+\lstinputlisting[
+    style=tclstyle,
+    firstline=24,
+    lastline=62,
+    caption={Trecho principal de \texttt{synth\_ungrouped.tcl}.},
+    label={lst:synth-ungrouped}
+]{dados/synth_ungrouped.tcl}
+
+\imagemrelatorio
+{01_scripts_sintese_grouped_ungrouped.png}
+{0.98}
+{Trechos dos scripts de síntese grouped e ungrouped, mostrando \texttt{set\_svf}, \texttt{compile\_ultra} e a escrita das netlists.}
+{fig:scripts-sintese}
+
+\subsection{Geração dos artefatos}
+
+A Figura~\ref{fig:artefatos-gerados} comprova a criação de dois SVFs e duas netlists. O SVF grouped possui 17.152 bytes e a netlist grouped 29.480 bytes. O SVF ungrouped possui 18.944 bytes e a netlist ungrouped 27.757 bytes. Os tamanhos diferentes confirmam que os arquivos pertencem a rodadas distintas.
+
+\imagemrelatorio
+{02_svfs_e_netlists_gerados.png}
+{0.98}
+{SVFs e netlists gerados nas duas rodadas de síntese.}
+{fig:artefatos-gerados}
+
+\subsection{Configuração do Formality}
+
+Em cada script, o modo \texttt{synopsys\_auto\_setup} foi habilitado, a biblioteca tecnológica foi carregada, o SVF correspondente foi associado e os designs foram lidos em containers separados. O RTL foi carregado como referência em \texttt{r:/WORK/vending\_top}, enquanto a netlist foi carregada como implementação em \texttt{i:/WORK/vending\_top}.
+
+Na versão instalada, foi adotada a ordem funcional \texttt{set synopsys\_auto\_setup true} antes de \texttt{set\_svf}. O próprio relatório final confirmou que o modo automático estava habilitado durante as duas verificações.
+
+\lstinputlisting[
+    style=tclstyle,
+    firstline=7,
+    lastline=74,
+    caption={Fluxo de leitura, match, verify e geração de reports na configuração grouped.},
+    label={lst:fm-grouped}
+]{dados/formality_grouped.tcl}
+
+\imagemrelatorio
+{09_configuracao_scripts_formality.png}
+{0.98}
+{Configuração dos scripts Formality para as rodadas grouped e ungrouped.}
+{fig:config-formality}
+
+Os scripts entregues são scripts manuais e incluem diretamente todos os comandos de setup, \texttt{match}, \texttt{verify} e geração de relatórios. Não foi necessário utilizar \texttt{match -certain} nem \texttt{set\_user\_match}, pois o casamento padrão guiado pelo SVF resolveu todos os pontos.
+
+% ----------------------------------------------------------
+\section{Resultados da Verificação}
+% ----------------------------------------------------------
+
+\subsection{Resultado grouped}
+
+A execução grouped terminou com código de saída zero e veredito \texttt{Verification SUCCEEDED}. Foram provados 101 pontos de comparação equivalentes, sendo 21 portas e 80 flip-flops. Nenhum ponto foi classificado como failing.
+
+\imagemrelatorio
+{04_status_final_grouped.png}
+{0.90}
+{Status final da verificação formal para a netlist grouped.}
+{fig:status-grouped}
+
+\begin{table}[H]
+\centering
+\caption{Resumo da verificação grouped}
+\label{tab:grouped}
+\begin{tabular}{lr}
+\toprule
+\textbf{Métrica} & \textbf{Resultado} \\
+\midrule
+Veredito & \texttt{Verification SUCCEEDED} \\
+Compare points passing & 101 \\
+Portas & 21 \\
+Flip-flops (DFF) & 80 \\
+Failing points & 0 \\
+Unmatched points & 0 \\
+Operações SVF aceitas & 64 \\
+Operações SVF rejeitadas & 0 \\
+Tempo do Formality & 4 s \\
+Memória máxima & 1032 MB \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Resultado ungrouped}
+
+A execução ungrouped também terminou com código de saída zero e veredito \texttt{Verification SUCCEEDED}. O total de pontos foi idêntico ao da execução grouped: 101 compare points, compostos por 21 portas e 80 flip-flops, sem failing points.
+
+\imagemrelatorio
+{05_status_final_ungrouped.png}
+{0.90}
+{Status final da verificação formal para a netlist ungrouped.}
+{fig:status-ungrouped}
+
+\begin{table}[H]
+\centering
+\caption{Resumo da verificação ungrouped}
+\label{tab:ungrouped}
+\begin{tabular}{lr}
+\toprule
+\textbf{Métrica} & \textbf{Resultado} \\
+\midrule
+Veredito & \texttt{Verification SUCCEEDED} \\
+Compare points passing & 101 \\
+Portas & 21 \\
+Flip-flops (DFF) & 80 \\
+Failing points & 0 \\
+Unmatched points & 0 \\
+Operações SVF aceitas & 69 \\
+Operações SVF rejeitadas & 0 \\
+Tempo do Formality & 4 s \\
+Memória máxima & 1032 MB \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Operações SVF aceitas e rejeitadas}
+
+A configuração grouped apresentou 64 operações SVF aceitas e nenhuma rejeitada. A configuração ungrouped apresentou 69 operações aceitas e nenhuma rejeitada. Portanto, o guidance foi consumido sem rejeições nas duas rodadas.
+
+\imagemrelatorio
+{06_operacoes_svf_aceitas_rejeitadas.png}
+{0.98}
+{Contagem de operações SVF aceitas e rejeitadas nas duas verificações.}
+{fig:svf-contagem}
+
+A diferença de cinco operações aceitas é explicada pelas operações \texttt{guide\_ungroup} registradas para cinco instâncias do projeto:
+
+\lstinputlisting[
+    style=reportstyle,
+    firstline=204,
+    lastline=231,
+    caption={Operações \texttt{guide\_ungroup} aceitas no SVF da síntese ungrouped.},
+    label={lst:guide-ungroup}
+]{dados/svf_accepted_ungrouped.rpt}
+
+As instâncias desagrupadas foram \texttt{u\_control\_unit}, \texttt{u\_credit\_reg}, \texttt{u\_memory}, \texttt{u\_comparator} e \texttt{u\_subtractor}. O SVF permitiu que essas mudanças de hierarquia fossem interpretadas automaticamente pelo Formality.
+
+Os arquivos \texttt{svf\_rejected.rpt} contêm apenas o cabeçalho do relatório, sem nenhuma entrada de operação rejeitada, o que confirma a contagem igual a zero.
+
+\subsection{Failing e unmatched points}
+
+Os relatórios finais das duas configurações registraram explicitamente \texttt{No failing compare points} e \texttt{No unmatched points}. Assim, não houve necessidade de executar \texttt{analyze\_points}, aplicar casamento manual ou justificar pontos não comparados.
+
+\imagemrelatorio
+{08a_grouped_sem_failing_unmatched.png}
+{0.90}
+{Relatórios grouped sem failing points e sem unmatched points.}
+{fig:sem-problemas-grouped}
+
+\imagemrelatorio
+{08b_ungrouped_sem_failing_unmatched.png}
+{0.90}
+{Relatórios ungrouped sem failing points e sem unmatched points.}
+{fig:sem-problemas-ungrouped}
+
+% ----------------------------------------------------------
+\section{Comparação entre Grouped e Ungrouped}
+% ----------------------------------------------------------
+
+A Tabela~\ref{tab:comparacao} resume as duas execuções. Ambas chegaram ao mesmo resultado funcional, mas a rodada ungrouped exigiu cinco operações SVF adicionais para representar o desagrupamento dos submódulos.
+
+\begin{table}[H]
+\centering
+\caption{Comparação das verificações grouped e ungrouped}
+\label{tab:comparacao}
+\small
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}Xcc}
+\toprule
+\textbf{Métrica} & \textbf{Grouped} & \textbf{Ungrouped} \\
+\midrule
+Comando de síntese & \texttt{compile\_ultra -no\_autoungroup} & \texttt{compile\_ultra} \\
+Tamanho da netlist & 29.480 bytes & 27.757 bytes \\
+Tamanho do SVF & 17.152 bytes & 18.944 bytes \\
+Veredito & SUCCEEDED & SUCCEEDED \\
+Compare points passing & 101 & 101 \\
+Portas & 21 & 21 \\
+DFFs & 80 & 80 \\
+Failing points & 0 & 0 \\
+Unmatched points & 0 & 0 \\
+Operações SVF aceitas & 64 & 69 \\
+Operações SVF rejeitadas & 0 & 0 \\
+Tempo do Formality & 4 s & 4 s \\
+Memória máxima & 1032 MB & 1032 MB \\
+Matching manual necessário & Não & Não \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\imagemrelatorio
+{10a_comparacao_final_grouped.png}
+{0.98}
+{Resumo final da execução grouped.}
+{fig:comparacao-grouped}
+
+\imagemrelatorio
+{10b_comparacao_final_ungrouped.png}
+{0.98}
+{Resumo final da execução ungrouped.}
+{fig:comparacao-ungrouped}
+
+A netlist ungrouped ficou ligeiramente menor, enquanto o seu SVF ficou maior. Esse comportamento é coerente com o achatamento hierárquico: a implementação pode eliminar estruturas de módulo, mas o SVF precisa registrar transformações adicionais para permitir que o Formality reconstrua a correspondência lógica com o RTL hierárquico.
+
+A igualdade do número de compare points demonstra que a remoção das fronteiras de módulo não alterou a quantidade de saídas e elementos de estado relevantes para a prova. O guidance eliminou a necessidade de \texttt{match -certain} ou de associações manuais, mesmo na configuração com hierarquia modificada.
+
+% ----------------------------------------------------------
+\section{Avisos e Análise de Consistência}
+% ----------------------------------------------------------
+
+Durante a síntese, o Design Compiler registrou avisos sobre um ramo \texttt{default} inalcançável no módulo \texttt{credit\_reg} e sobre a desconsideração de comandos \texttt{initial} no módulo \texttt{memory}. O Formality também informou que comandos \texttt{initial} não são suportados e apresentou avisos relacionados a células de potência da biblioteca SAED32.
+
+Na rodada grouped, o log registrou ainda a existência de cinco nets não dirigidas na implementação. O modo \texttt{synopsys\_auto\_setup} configurou o tratamento de sinais não dirigidos de forma compatível com a síntese. Esses avisos não produziram failing points, unmatched points ou resultado inconclusivo. Como ambas as execuções terminaram com \texttt{Verification SUCCEEDED}, os avisos não invalidaram a equivalência provada para os compare points do design.
+
+Também foi verificado que cada script possui exatamente dois comandos \texttt{set\_top}: um para o design de referência e outro para a implementação. Essa organização evita o erro de redefinição de top observado durante a fase inicial de depuração.
+
+% ----------------------------------------------------------
+\section{Discussão}
+% ----------------------------------------------------------
+
+O resultado demonstra que a netlist produzida pelo Design Compiler é sequencialmente equivalente ao RTL da vending machine nas duas estratégias de síntese. A preservação da hierarquia não foi necessária para que o Formality alcançasse o sign-off, pois o SVF foi capaz de orientar o casamento também na versão ungrouped.
+
+O principal efeito da remoção de \texttt{-no\_autoungroup} apareceu no conteúdo do SVF: foram registradas e aceitas cinco operações \texttt{guide\_ungroup}, exatamente uma para cada submódulo achatado. Apesar dessa diferença estrutural, os resultados finais permaneceram idênticos: 101 pontos equivalentes, zero failing e zero unmatched.
+
+Sem guidance, alterações de hierarquia e nomes poderiam exigir uma segunda passada de \texttt{match -certain} ou comandos \texttt{set\_user\_match}. Neste fluxo, nenhuma dessas intervenções foi necessária. Portanto, o SVF reduziu o trabalho manual de matching e forneceu um trilho contínuo entre a síntese e a prova formal.
+
+% ----------------------------------------------------------
+\section{Conclusão}
+% ----------------------------------------------------------
+
+A atividade atingiu o objetivo de fechar o sign-off formal da síntese do controlador de vending machine. Foram geradas duas netlists e dois arquivos SVF independentes, correspondentes às configurações grouped e ungrouped. Os scripts do Formality carregaram corretamente a biblioteca, o guidance, o RTL e as netlists, executando \texttt{match} e \texttt{verify} sem erros fatais.
+
+As duas verificações terminaram com \texttt{Verification SUCCEEDED}. Em cada rodada, 101 compare points foram provados equivalentes, sendo 21 portas e 80 flip-flops. Não houve failing points, unmatched points ou operações SVF rejeitadas. A configuração ungrouped apresentou cinco operações aceitas adicionais, associadas ao desagrupamento dos módulos, mas manteve o mesmo resultado funcional e o mesmo tempo de prova.
+
+Conclui-se que as otimizações realizadas pelo Design Compiler, inclusive as mudanças de hierarquia da síntese ungrouped, preservaram integralmente o comportamento do RTL original. O uso do SVF foi suficiente para eliminar matching manual e documentar de forma reproduzível a equivalência entre o design de referência e as implementações sintetizadas.
+
+% ----------------------------------------------------------
+\section{Referências}
+% ----------------------------------------------------------
+
+\begin{itemize}[leftmargin=1.2cm,itemsep=2pt]
+    \item CI Expert. \textit{Roteiro de Verificação de Equivalência Formal (Formality) - Vending Machine Controller}.
+    \item Synopsys. \textit{Design Compiler User Guide}.
+    \item Synopsys. \textit{Formality User Guide}.
+    \item Synopsys. \textit{Formality Automated Setup File (SVF) Manual}.
+\end{itemize}
+
+\appendix
+
+% ----------------------------------------------------------
+\section{Resumo textual das execuções}
+% ----------------------------------------------------------
+
+O arquivo abaixo foi gerado diretamente no servidor a partir dos reports e logs das duas verificações.
+
+\lstinputlisting[
+    style=reportstyle,
+    caption={Resumo consolidado das execuções do Formality.}
+]{dados/evidencias_formality.txt}
+
+% ----------------------------------------------------------
+\section{Arquivos de evidência incluídos}
+% ----------------------------------------------------------
+
+O pacote LaTeX acompanha os scripts e relatórios utilizados na elaboração deste documento:
+
+\begin{itemize}[leftmargin=1.2cm,itemsep=2pt]
+    \item \texttt{dados/synth\_grouped.tcl} e \texttt{dados/synth\_ungrouped.tcl};
+    \item \texttt{dados/formality\_grouped.tcl} e \texttt{dados/formality\_ungrouped.tcl};
+    \item reports finais de status, failing e unmatched;
+    \item reports de operações SVF aceitas e rejeitadas;
+    \item imagens reais obtidas no servidor durante a execução.
+\end{itemize}
+
+\end{document}
